@@ -1,0 +1,10 @@
+# Core benchmark (weeks 5-6)
+agentdojo==0.1.35
+python-dotenv>=1.0
+pandas>=2.0
+
+# Detector training (weeks 8-10) - install now so the environment is ready
+transformers>=4.40
+datasets>=2.18
+scikit-learn>=1.4
+torch>=2.2

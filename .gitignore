@@ -1,0 +1,20 @@
+# Secrets - never commit your API key
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Large outputs
+runs/
+models/
+*.pt
+*.safetensors
+
+# Keep result summaries (small CSVs) in git
+!results/*.csv
+
+.DS_Store
+.ipynb_checkpoints/
