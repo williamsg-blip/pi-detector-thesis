@@ -3,8 +3,15 @@ agentdojo==0.1.35
 python-dotenv>=1.0
 pandas>=2.0
 
-# Detector training (weeks 8-10) - install now so the environment is ready
-transformers>=4.40
-datasets>=2.18
+# Dataset + baselines (weeks 7-8)
 scikit-learn>=1.4
+numpy>=1.26
+
+# Transformer training (weeks 8-9). Colab already has torch with GPU support.
 torch>=2.2
+transformers>=4.44
+accelerate>=0.30
+tokenizers>=0.19
+sentencepiece>=0.2   # DeBERTa-v3 tokenizer
+protobuf>=4.25
+huggingface_hub>=0.23

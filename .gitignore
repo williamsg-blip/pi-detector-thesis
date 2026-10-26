@@ -10,6 +10,8 @@ venv/
 # Large outputs
 runs/
 models/
+# cloned benchmark repos (see scripts/build_dataset.py)
+external/
 *.pt
 *.safetensors
 

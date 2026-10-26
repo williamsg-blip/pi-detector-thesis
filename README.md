@@ -10,10 +10,20 @@ Senior thesis project. A small, fast classifier that checks outside content (too
 pi-detector-thesis/
 ├── scripts/
 │   ├── check_environment.py   # Week 5: confirms everything is installed and working
-│   └── run_baseline.py        # Week 6: no-defense baseline (reused in weeks 8 and 11)
-├── results/                   # CSV results (one row per agent run)
+│   ├── run_baseline.py        # Week 6: end-to-end agent baseline in AgentDojo (reused in week 11)
+│   ├── build_dataset.py       # Week 7: builds data/dataset.jsonl from 3 benchmarks + READMEs
+│   ├── split_dataset.py       # Week 8: train/val/test split with leakage checks
+│   ├── eval_baselines.py      # Week 8: keyword filter + TF-IDF baselines (CPU, no downloads)
+│   ├── eval_hf_detectors.py   # Week 8: Prompt Guard 1/2 + ProtectAI baselines (Colab GPU)
+│   └── train_classifier.py    # Week 9: fine-tune DeBERTa-v3-small with chunking (Colab GPU)
+├── pidetect/                  # shared code: chunking, metrics, split rules, reporting
+├── notebooks/
+│   └── colab_weeks8-9.ipynb   # runs the GPU parts of weeks 8-9 in Google Colab
+├── data/                      # train/val/test splits (committed), README snapshot
+├── results/                   # result tables (.md) and raw numbers (.json, .csv)
 ├── notes/
 │   ├── reading_notes.md       # Week 6: notes on key papers
+│   ├── data_card.md           # Week 7: what's in the dataset, licenses, limitations
 │   └── progress_log.md        # Weekly log for advisor check-ins
 ├── requirements.txt
 ├── .env.example               # Template for your API key
@@ -93,16 +103,35 @@ Two things in the built-in self-check look like failures but aren't problems wit
 1. The built-in "is this task injectable?" check always says no, because it expects tool output as a plain string while this version stores it as content blocks. The script checks injectability with the same function the real attacks use instead.
 2. Some injection tasks (workspace 6–13, one in travel) ship without a reference solution, so they can't pass the self-check. Real attacks are still scored normally.
 
+## Detection experiments (weeks 7–9)
+
+The detector is evaluated on its own first (weeks 8–10), then inside the agent (week 11).
+
+**On your computer (CPU, a few minutes):**
+```bash
+python scripts/split_dataset.py       # re-creates data/{train,val,test}.jsonl and checks for leakage
+python scripts/eval_baselines.py      # keyword + TF-IDF -> results/week8_baselines.md
+python scripts/train_classifier.py --smoke-test   # 20-second check that the training code runs
+```
+The splits are already committed, so `build_dataset.py` only needs to run if you change how the data is made. It needs the two benchmark repos cloned into `external/` (instructions at the top of the script) and takes about 8 minutes.
+
+**On Colab (T4 GPU, about 45 minutes):** open `notebooks/colab_weeks8-9.ipynb` and run the cells top to bottom. It evaluates Prompt Guard 1/2 and ProtectAI, fine-tunes DeBERTa-v3-small, runs the no-chunking ablation, and writes `results/week9_comparison.md` with every detector in one table. Prompt Guard needs a free Hugging Face account and license acceptance (steps are in the notebook).
+
+**How every detector is scored (so comparisons are fair):**
+1. Each document is split into 200-word chunks with 50% overlap; document score = highest chunk score.
+2. The threshold is chosen on **validation** so at most 2% of benign docs are flagged, then applied unchanged to **test**.
+3. Results are broken down by source, attack style, unseen attack style, long docs, and instructional benign text.
+
 ## Timeline
 | Week | Status | Focus |
 | --- | --- | --- |
 | 5 | ✅ Done | Environment, repo, environment check |
-| 6 | ✅ Code + notes done · ⏳ real API run | No-defense baseline, reading |
-| 7 | | Collect attack + benign data |
-| 8 | | Clean data; Prompt Guard / keyword / spotlighting baselines |
-| 9 | | Fine-tune classifier |
-| 10 | | Rule-based checks, threshold tuning, midpoint check-in |
-| 11 | | Plug detector into AgentDojo, end-to-end tests |
+| 6 | ✅ Code + notes · ⏳ real API run | No-defense agent baseline, reading |
+| 7 | ✅ Done | Dataset: 7,938 samples from AgentDojo, InjecAgent, BIPIA, READMEs |
+| 8 | ✅ Local baselines · ⏳ Prompt Guard (Colab) | Splits with leakage checks; keyword, TF-IDF, Prompt Guard, ProtectAI |
+| 9 | ✅ Code, verified · ⏳ GPU run (Colab) | Fine-tune DeBERTa-v3-small with chunking + no-chunking ablation |
+| 10 | | Rule-based checks, threshold tuning, sensitive-but-benign test set, midpoint check-in |
+| 11 | | Plug detector into AgentDojo, end-to-end tests (report `banking` separately) |
 | 12 | | Compare baselines; stretch goals (buffer week) |
 | 13 | | Draft paper |
 | 14 | | Final paper, code cleanup, slides |
