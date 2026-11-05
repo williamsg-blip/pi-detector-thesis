@@ -8,11 +8,11 @@
 - Found two quirks in AgentDojo's built-in self-check (see README, "Notes on AgentDojo 0.1.35"). Neither affects real results; the check script works around both.
 
 ## Week 6 (Oct 5 – 9): Baseline + reading
-- Wrote `scripts/run_baseline.py`. It runs every user task with no attack (utility) and with each injection task (attack success), saves one CSV row per run, and prints a summary table. The same script takes `--defense`, so it will be reused for baselines in week 8 and the detector in week 11.
+- Wrote `scripts/run_baseline.py`. It runs every user task with no attack and with each injection task, saves one CSV row per run, and prints a summary table. The same script takes `--defense`, so it will be reused for baselines in week 8 and the detector in week 11.
 - Validated the scoring with two fake agents (no API cost):
 
 | Fake agent | Benign utility | Attack success rate |
-| --- | --- | --- |
+| caffinate | 73.2% | 29.3% |
 | `safe` (ignores attacks) | 100.0% | 0.0% |
 | `obey` (follows attacks) | 100.0% | 64.6% |
 
