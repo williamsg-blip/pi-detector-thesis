@@ -122,6 +122,7 @@ def main() -> int:
         tokenizer = AutoTokenizer.from_pretrained(args.model)
         model = AutoModelForSequenceClassification.from_pretrained(
             args.model, num_labels=2, id2label=LABELS, label2id={v: k for k, v in LABELS.items()})
+        model = model.float()  # newer transformers can load fp16 weights; fp16 training needs fp32 weights
 
     class ChunkDataset(torch.utils.data.Dataset):
         def __init__(self, texts, labels):
