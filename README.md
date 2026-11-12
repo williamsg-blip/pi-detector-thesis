@@ -15,10 +15,16 @@ pi-detector-thesis/
 │   ├── split_dataset.py       # Week 8: train/val/test split with leakage checks
 │   ├── eval_baselines.py      # Week 8: keyword filter + TF-IDF baselines (CPU, no downloads)
 │   ├── eval_hf_detectors.py   # Week 8: Prompt Guard 1/2 + ProtectAI baselines (Colab GPU)
-│   └── train_classifier.py    # Week 9: fine-tune DeBERTa-v3-small with chunking (Colab GPU)
+│   ├── train_classifier.py    # Week 9: fine-tune DeBERTa-v3-small with chunking (GPU)
+│   ├── build_sensitive_benign.py  # Week 10: benign text about money, passwords, locks
+│   ├── make_obfuscated_test.py    # Week 10: disguised attacks (invisible chars, hidden HTML, base64, lookalikes)
+│   ├── score_sets.py          # Week 10: score every set with one detector (GPU for DeBERTa)
+│   ├── analyze_week10.py      # Week 10: threshold sweep, rules, operating points (CPU)
+│   └── summarize_end_to_end.py    # Week 11: compare AgentDojo runs (banking held out)
 ├── pidetect/                  # shared code: chunking, metrics, split rules, reporting
 ├── notebooks/
-│   └── colab_weeks8-9.ipynb   # runs the GPU parts of weeks 8-9 in Google Colab
+│   ├── colab_weeks8-9.ipynb   # GPU parts of weeks 8-9 (Google Colab)
+│   └── kaggle_weeks10-11.ipynb    # GPU parts of weeks 10-11 (Kaggle), incl. real agent runs
 ├── data/                      # train/val/test splits (committed), README snapshot
 ├── results/                   # result tables (.md) and raw numbers (.json, .csv)
 ├── notes/
@@ -122,16 +128,37 @@ The splits are already committed, so `build_dataset.py` only needs to run if you
 2. The threshold is chosen on **validation** so at most 2% of benign docs are flagged, then applied unchanged to **test**.
 3. Results are broken down by source, attack style, unseen attack style, long docs, and instructional benign text.
 
+## Weeks 10–11: thresholds, new test sets, and the end-to-end test
+
+**On your Mac (CPU, no downloads):**
+```bash
+python scripts/build_sensitive_benign.py      # data/sensitive_benign.jsonl (already committed)
+python scripts/make_obfuscated_test.py        # data/{val,test}_obfuscated.jsonl (already committed)
+python scripts/score_sets.py keyword && python scripts/score_sets.py tfidf
+python scripts/analyze_week10.py              # -> results/week10_analysis.md + week10_operating_points.json
+python scripts/run_baseline.py --dry-run gullible --attack system_message --detector tfidf   # free end-to-end test
+```
+
+**On Kaggle (GPU):** open `notebooks/kaggle_weeks10-11.ipynb` and run the cells in order. It retrains DeBERTa, scores every set, reruns the analysis, picks the detector on validation data, runs the free offline test, then (with an `OPENAI_API_KEY` secret) the real-agent runs on banking. Each step saves to GitHub when it finishes.
+
+**What's new in the pipeline:**
+- `pidetect/normalize.py` removes disguises (invisible characters, lookalike letters, HTML tags, base64) before scoring.
+- `pidetect/rules.py` flags disguises directly. Week 10 shows why these weren't kept: they fire on disguised benign text too.
+- `pidetect/agentdojo_defense.py` is the detector as an AgentDojo defense. Flagged tool outputs are replaced before the agent reads them.
+- `run_baseline.py --detector <name>` uses the operating point saved in week 10. `--dry-run gullible` is a fake agent that follows any injection it can still see, for free worst-case testing.
+
+**Always report two attacks:** the default `important_instructions` (matches the week 6 baseline, but its template is in the training data) and `system_message` (never trained on: the fair test).
+
 ## Timeline
 | Week | Status | Focus |
 | --- | --- | --- |
 | 5 | ✅ Done | Environment, repo, environment check |
-| 6 | ✅ Code + notes · ⏳ real API run | No-defense agent baseline, reading |
+| 6 | ✅ Done | No-defense agent baseline (29.3% attack success; banking 47.2%), reading |
 | 7 | ✅ Done | Dataset: 7,938 samples from AgentDojo, InjecAgent, BIPIA, READMEs |
-| 8 | ✅ Local baselines · ⏳ Prompt Guard (Colab) | Splits with leakage checks; keyword, TF-IDF, Prompt Guard, ProtectAI |
-| 9 | ✅ Code, verified · ⏳ GPU run (Colab) | Fine-tune DeBERTa-v3-small with chunking + no-chunking ablation |
-| 10 | | Rule-based checks, threshold tuning, sensitive-but-benign test set, midpoint check-in |
-| 11 | | Plug detector into AgentDojo, end-to-end tests (report `banking` separately) |
-| 12 | | Compare baselines; stretch goals (buffer week) |
+| 8 | ✅ Done | Splits with leakage checks; keyword, TF-IDF, Prompt Guard, ProtectAI baselines |
+| 9 | ✅ Done | Fine-tuned DeBERTa-v3-small: 98.7% recall, 0.997 AUROC (chunked) |
+| 10 | ✅ Code + local results · ⏳ DeBERTa scoring (Kaggle) | Sensitive-topic + disguised test sets, normalization, rules, threshold sweep, midpoint check-in |
+| 11 | ✅ Code + offline results · ⏳ real agent runs (Kaggle) | Detector inside AgentDojo; default and held-out attacks; banking reported separately |
+| 12 | | Compare everything; stretch goals (buffer week) |
 | 13 | | Draft paper |
 | 14 | | Final paper, code cleanup, slides |

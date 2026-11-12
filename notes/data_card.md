@@ -51,3 +51,15 @@ Totals before splitting: **7,938 samples** (5,598 injected, 2,340 benign) after 
 7. **AgentDojo positives are dominated by the workspace suite** (it has the most tasks and goals).
 8. **The InjecAgent split is probably too easy, and topic is a shortcut.** InjecAgent's attacks all ask for sensitive actions (unlock a door, transfer money, email passwords), while my benign fillers are mundane. TF-IDF gets 100% on it, and probing shows it flags *any* sensitive request ("Please transfer $500 from my checking account" scores 0.96) and misses sensitive ones phrased casually. Benign text that mentions sensitive actions (bank notifications, real password-reset emails, smart-home logs) is the missing hard negative; see the week 10 plan.
 9. If the GitHub repo is public, consider committing only the build script instead of the README-derived data, since those READMEs carry their own licenses.
+
+## Week 10 additions (test-only sets)
+
+| File | What it is | Injected | Benign | Used for |
+| --- | --- | --- | --- | --- |
+| `data/sensitive_benign.jsonl` | Author-written, template-based benign texts in 7 categories (bank notifications, account security, smart home, payments, IT help, personal notes, health/insurance) | 0 | 175 | Test only: false alarms on sensitive topics |
+| `data/val_obfuscated.jsonl` | Validation docs with injections (or benign stretches) disguised 4 ways | 600 | 600 | Choosing normalization/rules |
+| `data/test_obfuscated.jsonl` | The same, built from the test split | 600 | 600 | Test only |
+
+Limitations:
+- The sensitive-topic texts are synthetic: about 50 templates filled with varied names, amounts, and dates. Some categories (IT help articles) have only a few fixed templates, so their texts are similar. They test the "topic, not attack" failure directly, but they aren't real user data.
+- Disguised benign docs have their disguise in a random 8–20 word stretch. Real benign text is disguised far less often than 50% of the time, so the disguised sets are a stress test, not a natural mix.

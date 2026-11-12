@@ -209,12 +209,17 @@ def main() -> int:
         for r, s in zip(test, test_scores)))
 
     if not args.smoke_test:
+        # Rebuild the comparison from EVERY saved result, so one run never drops another's row
         baselines = [json.loads(p.read_text()) for p in [Path("results/week8_baselines.json"),
                                                          Path("results/week8_hf_detectors.json")] if p.exists()]
-        combined = [r for b in baselines for r in b] + [result]
-        Path("results/week9_comparison.md").write_text(
-            "# Week 9: fine-tuned classifier vs. baselines\n\n" + markdown_summary(combined))
-        print(Path("results/week9_comparison.md").read_text())
+        week9 = [json.loads(p.read_text()) for p in sorted(Path("results").glob("week9_*.json"))]
+        combined = [r for b in baselines for r in b] + week9
+        if not str(out).startswith("results/week9_"):
+            combined.append(result)  # a run saved elsewhere still appears in this printout
+        print("# Fine-tuned classifier vs. baselines\n\n" + markdown_summary(combined))
+        if str(out).startswith("results/week9_"):
+            Path("results/week9_comparison.md").write_text(
+                "# Week 9: fine-tuned classifier vs. baselines\n\n" + markdown_summary(combined))
     else:
         print(markdown_summary([result]))
         print("Smoke test finished: the training and evaluation code runs end to end.")

@@ -1,0 +1,24 @@
+{
+  "tfidf": {
+    "threshold": 0.47833828166923614,
+    "val_fpr_target": 0.02,
+    "normalize": true,
+    "rules": false,
+    "variant": "+ normalization",
+    "val_score": 0.9071,
+    "score_dir": "results/scores/tfidf",
+    "detector": "tfidf",
+    "no_chunking": false
+  },
+  "keyword": {
+    "threshold": 1.0,
+    "val_fpr_target": null,
+    "normalize": true,
+    "rules": false,
+    "variant": "+ normalization",
+    "val_score": 0.4272,
+    "score_dir": "results/scores/keyword",
+    "detector": "keyword",
+    "no_chunking": false
+  }
+}
